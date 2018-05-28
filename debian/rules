@@ -1,0 +1,46 @@
+#!/usr/bin/make -f
+
+.PHONY: clean binary binary-arch binary-indep build build-arch build-indep
+
+# I won't handle the DEB_* environment variables
+
+URI ?= https://github.com/opentrack/opentrack.git
+TAG ?= unstable
+
+all: binary
+build:
+
+binary-arch::
+
+	@mkdir -p pkg/build
+	@dh_gencontrol -popentrack -Ppkg/install
+
+	((cd pkg/src 2>/dev/null && 						\
+	    git pull origin $(TAG):$(TAG) && 					\
+	    git checkout $(TAG)) ||						\
+	 (rm -rf pkg/src && git clone -b $(TAG) $(URI) pkg/src))
+
+	(umask 0022 && cd pkg/build && LC_ALL=C LANG=C cmake -GNinja		\
+		-DCMAKE_INSTALL_PREFIX=/usr					\
+		-DCMAKE_BUILD_TYPE=RELEASE					\
+		-DCMAKE_CXX_FLAGS_RELEASE="-O3"					\
+		-DCMAKE_C_FLAGS_RELEASE="-O3"					\
+		-DCMAKE_EXE_LINKER_FLAGS=-s					\
+		-DCMAKE_SHARED_LINKER_FLAGS=-s					\
+		-DCMAKE_CXX_FLAGS="-pipe -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter"	\
+		-DCMAKE_C_FLAGS="-pipe -Wall -Wextra -Wpedantic"		\
+		../src/)
+
+	umask 0022 &&								\
+	LC_ALL=C LANG=C DESTDIR=../../pkg/install				\
+		cmake --build pkg/build --target install
+	dh_builddeb -popentrack -Ppkg/install
+
+clean::
+	rm -rf pkg/build pkg/install
+
+binary-indep:
+binary: binary-arch binary-indep
+build-indep:
+build-arch:
+

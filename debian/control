@@ -1,0 +1,16 @@
+Source: opentrack
+Maintainer: Stanislaw Halik <sthalik@misaki.pl
+Section: games
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends:
+	build-essential, libprocps-dev,
+	winehq-devel,
+	cmake (>= 3.8.0), pkg-config, git, ninja-build,
+	qttools5-dev, qttools5-dev-tools, qtbase5-dev, libqt5serialport5-dev,
+	libopencv-dev (>= 3.0)
+
+Package: opentrack
+Architecture: any
+Depends: ${misc:Depends} 
+Description: opentrack
